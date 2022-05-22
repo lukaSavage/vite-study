@@ -293,7 +293,7 @@
    function createServer() {
    	// koa实例
    	const app = new Koa();
-   	// 当前命令所在的根目录
+   	// 当前命令行在哪里，root就是哪个路径
    	const root = process.cwd();
    	console.log(root);
    	// 上下文
@@ -319,6 +319,49 @@
    });
    ```
 
-   
+3. <font color="red">命令行切换到`package/vite-project`目录下</font>,然后执行<font color="blue">`vite-cli`</font>,即可开启静态服务器。
 
-3. 
+## 五、vite-project的配置
+
+1. 在vite-project目录下新建一个vite.config.js文件，内容如下
+
+   ```js
+   /*
+    * @Descripttion: vite配置文件
+    * @Author: lukasavage
+    * @Date: 2022-05-22 20:51:56
+    * @LastEditors: lukasavage
+    * @LastEditTime: 2022-05-22 20:53:18
+    * @FilePath: \vite-demo\packages\vite-project\vite.config.js
+    */
+   import { defineConfig } from 'vite';
+   import vue from '@vitejs/plugin-vue';
+   
+   export default defineConfig({
+   	polugins: [vue()],
+   });
+   ```
+
+2. 为了修改服务器自动启用，我们需要新建一个nodemon.json文件，配置如下
+
+   ```json
+   {
+       "watch": [
+           "../vite-cli"
+       ]
+   }
+   ```
+
+3.  在vite-project目录中添加vue、@vitejs/plugin-vue 
+
+   ```bash
+   yarn workspace vite-project add  vue@3  @vitejs/plugin-vue @vue/compiler-sfc
+   ```
+
+   文件说明：
+
+   - @vue/compiler-sfc             用于编译单个vue文件的包，把`.vue`文件变成一个函数
+   - 
+
+4. 
+
