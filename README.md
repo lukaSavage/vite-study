@@ -305,6 +305,11 @@
    		Object.assign(ctx, context);
    		return next();
    	});
+       
+       // resolvedPlugins将集中放入插件
+   	const resolvedPlugins = [serveStaticPlugin];
+   	resolvedPlugins.forEach(plugin => plugin(context));
+       
    	return app;
    }
    createServer().listen(4000, async err => {
