@@ -372,7 +372,7 @@
 
    此时你会发现，控制台会报如下错误↓
 
-   ![](F:\item\vite-demo\img\04.png)
+   ![](img/04.png)
 
    > 报错提示：默认情况下必须是相对路径或者绝对路径，而`import { createApp } from 'vue'`并不是，所以报错。
 
