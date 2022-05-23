@@ -47,7 +47,7 @@
 
 ### 1.1.3图文详解
 
-![](E:\vite-demo\img\01.png)
+![](img/01.png)
 
 ## 二、Lerna
 
@@ -71,7 +71,7 @@
 
 当你初始化的时候，此时你将会得到三个文件`packages`空文件夹，`lerna.json`，`package.json`文件，如下
 
-![](E:\vite-demo\img\02.png)
+![](img/02.png)
 
 ### 2.3 文件分析
 
@@ -172,7 +172,7 @@
 
 4. 在vite-cli文件目录下新建一个`bin`文件夹，并新建`vite.js`文件，如下
 
-   ![](E:\vite-demo\img\03.png)
+   ![](img/03.png)
 
    > 该文件的作用是：告诉执行工具要通过node命令执行，从当前的环境变量中找到node执行
 
@@ -363,5 +363,20 @@
    - @vue/compiler-sfc             用于编译单个vue文件的包，把`.vue`文件变成一个函数
    - 
 
-4. 
+4. 修改main.js文件
+
+   ```js
+   import { createApp } from 'vue';
+   console.log(createApp);
+   ```
+
+   此时你会发现，控制台会报如下错误↓
+
+   ![](F:\item\vite-demo\img\04.png)
+
+   > 报错提示：默认情况下必须是相对路径或者绝对路径，而`import { createApp } from 'vue'`并不是，所以报错。
+
+   
+
+5. 
 
