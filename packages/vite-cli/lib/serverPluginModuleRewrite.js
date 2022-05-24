@@ -40,9 +40,9 @@ function moduleRewritePlugin({ root, app }) {
 		await next();
 		//如果有响应体，并且此响应体的内容类型是js  mime-type=application/javascript
 		if (ctx.body && ctx.response.is('js')) {
-            // 拿到相对路径为了解析成hash唯一值拼接成 ?v=0e64aa70
+			// 拿到相对路径为了解析成hash唯一值拼接成 ?v=0e64aa70
 			const relativePath = path.relative(root, ctx.path);
-            // readbody会把整个文件toString化，变成一个字符串
+			// readbody会把整个文件toString化，变成一个字符串
 			const content = await readBody(ctx.body);
 			// 拿到内容后重写导入路径
 			const result = await rewriteImports(content, relativePath);

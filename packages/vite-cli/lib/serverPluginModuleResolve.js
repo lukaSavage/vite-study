@@ -3,7 +3,7 @@
  * @Author: lukasavage
  * @Date: 2022-05-24 17:19:28
  * @LastEditors: lukasavage
- * @LastEditTime: 2022-05-24 21:19:07
+ * @LastEditTime: 2022-05-24 21:41:52
  * @FilePath: \vite-demo\packages\vite-cli\lib\serverPluginModuleResolve.js
  */
 const fs = require('fs').promises;
