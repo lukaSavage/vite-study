@@ -3,7 +3,7 @@
  * @Author: lukasavage
  * @Date: 2022-05-23 18:52:41
  * @LastEditors: lukasavage
- * @LastEditTime: 2022-05-24 16:52:07
+ * @LastEditTime: 2022-05-24 20:41:10
  * @FilePath: \vite-demo\packages\vite-cli\lib\serverPluginModuleRewrite.js
  */
 const { readBody } = require('./utils.js');
@@ -20,7 +20,6 @@ const path = require('path');
 async function rewriteImports(content, relativePath) {
 	const magicString = new MagicString(content);
 	const imports = await parse(content);
-    console.log(imports);
 	if (imports && imports[0].length > 0) {
 		imports[0].forEach(({ n, s, e }) => {
 			//如果开头既不是/也不是.的话才会需要替换

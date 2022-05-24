@@ -512,4 +512,72 @@ exports.readBody = readBody;
 
 ![](img/05.png)
 
-##  七、模块解析插件
+##  七、模块解析插件moduleResolvePlugin
+
+#### 7.1 整体实现步骤
+
+#### 7.1.1 首先修改vite-cli/lib/cli.js
+
+```js
+// resolvedPlugins将集中放入插件
+const resolvedPlugins = [
+    moduleRewritePlugin,
+    moduleResolvePlugin,
+    serveStaticPlugin,
+];
+resolvedPlugins.forEach(plugin => plugin(context));
+```
+
+ #### 7.1.2 在lib文件夹下创建moduleResolvePlugin.js
+
+```js
+/*
+ * @Descripttion: 解析vue.js里面的内容
+ * @Author: lukasavage
+ * @Date: 2022-05-24 17:19:28
+ * @LastEditors: lukasavage
+ * @LastEditTime: 2022-05-24 20:38:54
+ * @FilePath: \vite-demo\packages\vite-cli\lib\serverPluginModuleResolve.js
+ */
+const fs = require('fs').promises;
+const node_modulesRegexp = /^\/node_modules\/\.vite\/(.+?)\.js/;
+const { resolveVue } = require('./utils');
+
+function moduleResolvePlugin({ app, root }) {
+	const vueResolved = resolveVue(root);
+	app.use(async (ctx, next) => {
+        /* 
+            拓展一下：
+                ctx.url: '/node_modules/.vite/deps/vue.js?v=0e64aa70'
+                ctx.path: '/node_modules/.vite/deps/vue.js'
+                ctx.query: { v: 0e64aa70 }
+        */
+		if (!node_modulesRegexp.test(ctx.path)) {
+			return next();
+		}
+		const moduleId = ctx.path.match(node_modulesRegexp)[1];
+		const modulePath = vueResolved[moduleId];
+		//如果vite预构建
+		//const modulePath = path.join(root, ctx.path)
+		const content = await fs.readFile(modulePath, 'utf8');
+		ctx.type = 'js';
+
+		ctx.body = content;
+	});
+}
+module.exports = moduleResolvePlugin;
+
+```
+
+#### 7.1.3 此时看起来虽然拿到了文件
+
+![0](E:\vite-demo\img\06.png)
+
+但控制台会有一个错误，shared.js中用到了一个process.env.NODE_ENV变量，而环境中并没有，因此报错
+
+![](E:\vite-demo\img\07.png)
+
+所以接下来我们需要通过注入一个插件：`injectProcessPlugin`来解决此问题
+
+
+
