@@ -577,7 +577,9 @@ module.exports = moduleResolvePlugin;
 
 ![](E:\vite-demo\img\07.png)
 
-所以接下来我们需要通过注入一个插件：`injectProcessPlugin`来解决此问题
+所以接下来我们需要通过注入一个插件：`injectProcessPlugin`来解决此问题。
+
+## 八、inject
 
 
 
