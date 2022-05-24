@@ -266,14 +266,20 @@
 1. 添加相关包
 
    ```bash
-   yarn workspace vite-cli add  es-module-lexer koa koa-static magic-string chalk dedent hash-sum
+   yarn workspace vite-cli add chalk dedent es-module-lexer koa koa-static magic-string hash-sum
    ```
 
    文件说明：
 
-   - chalk                  适用于给输入端信息添加样式的
-   - dedent               去除命令控制台文案的缩进
-   - 
+   | 包名            | 描述                                                         |
+   | --------------- | ------------------------------------------------------------ |
+   | chalk           | 适用于给输入端信息添加样式的                                 |
+   | es-module-lexer | 用于解析es导入的各个名称所在字符串的位置                     |
+   | dedent          | 去除命令控制台文案的缩进                                     |
+   | hash-sum        | 将esmodule导入的文件名(例如vue)变成hash值的                  |
+   | magic-string    | 重写某一个字符串，必须通过new获取实例方法。示例：magicString.overwrite(s, e, `/node_modules/.vite/${n}.js?v=${hash}`)<br />magicString.toString('xxx')方法将获取处理过后的字符串 |
+
+   拓展
 
 2. 修改vite-cli/lib/cli.js
 
@@ -343,7 +349,7 @@
    import vue from '@vitejs/plugin-vue';
    
    export default defineConfig({
-   	polugins: [vue()],
+   	plugins: [vue()],
    });
    ```
 
@@ -381,7 +387,13 @@
 
    > 报错提示：默认情况下必须是相对路径或者绝对路径，而`import { createApp } from 'vue'`并不是，所以报错。
 
-   
+   <font color="red">当我们使用官方的vite的时候，可以通过控制台观察到<font color="#090">`import { createApp } from 'vue'`</font>已经变成<font color="#0f0">`import { createApp } from '/node_modules/.vite/deps/vue.js?v=0e64aa70'`</font></font>
 
-5. 
+   ★★★★ 也就是说我们下一步的目标就是修改引入vue的路径。★★
+
+## 六、moduleRewritePlugin插件的编写
+
+
+
+
 

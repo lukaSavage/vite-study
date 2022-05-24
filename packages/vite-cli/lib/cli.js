@@ -3,13 +3,14 @@
  * @Author: lukasavage
  * @Date: 2022-05-22 10:09:23
  * @LastEditors: lukasavage
- * @LastEditTime: 2022-05-22 20:39:37
+ * @LastEditTime: 2022-05-23 20:24:27
  * @FilePath: \vite-demo\packages\vite-cli\lib\cli.js
  */
 const Koa = require('koa');
 // 此包去除缩进
 const dedent = require('dedent');
 const serveStaticPlugin = require('./serverPluginServeStatic');
+const moduleRewritePlugin = require('./serverPluginModuleRewrite');
 
 function createServer() {
 	// koa实例
@@ -28,7 +29,7 @@ function createServer() {
 	});
 
 	// resolvedPlugins将集中放入插件
-	const resolvedPlugins = [serveStaticPlugin];
+	const resolvedPlugins = [moduleRewritePlugin, serveStaticPlugin];
 	resolvedPlugins.forEach(plugin => plugin(context));
 
 	return app;
