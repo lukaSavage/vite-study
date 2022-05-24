@@ -3,7 +3,7 @@
  * @Author: lukasavage
  * @Date: 2022-05-22 10:09:23
  * @LastEditors: lukasavage
- * @LastEditTime: 2022-05-24 17:23:30
+ * @LastEditTime: 2022-05-24 21:15:38
  * @FilePath: \vite-demo\packages\vite-cli\lib\cli.js
  */
 const Koa = require('koa');
@@ -12,6 +12,7 @@ const dedent = require('dedent');
 const serveStaticPlugin = require('./serverPluginServeStatic');
 const moduleRewritePlugin = require('./serverPluginModuleRewrite');
 const moduleResolvePlugin = require('./serverPluginModuleResolve');
+const injectProcessPlugin = require('./injectProcessPlugin');
 
 function createServer() {
 	// koa实例
@@ -30,6 +31,7 @@ function createServer() {
 
 	// resolvedPlugins将集中放入插件
 	const resolvedPlugins = [
+		injectProcessPlugin,
 		moduleRewritePlugin,
 		moduleResolvePlugin,
 		serveStaticPlugin,

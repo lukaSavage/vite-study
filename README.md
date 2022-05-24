@@ -514,7 +514,7 @@ exports.readBody = readBody;
 
 ##  七、模块解析插件moduleResolvePlugin
 
-#### 7.1 整体实现步骤
+### 7.1 整体实现步骤
 
 #### 7.1.1 首先修改vite-cli/lib/cli.js
 
@@ -569,7 +569,28 @@ module.exports = moduleResolvePlugin;
 
 ```
 
-#### 7.1.3 此时看起来虽然拿到了文件
+#### 7.1.3 在utils文件夹中添加resolveVue函数
+
+```js
+function resolveVue(root) {
+	// require是从当前目录里面找模块
+	// 如果想从某个目录里找，可以用createRequire(root)就可以实现从root目录里找模块
+	let require = Module.createRequire(root);
+	const resolvePath = moduleName =>
+		require.resolve(`@vue/${moduleName}/dist/${moduleName}.esm-bundler.js`);
+	return {
+		// vue的核心包会同时加载以下三个包，所以全部得用上(原版的vite中会通过预构建把以下4个文件合并成一个vue.js文件)
+		vue: resolvePath('runtime-dom'),
+		'@vue/shared': resolvePath('shared'),
+		// vue的响应式原理包
+		'@vue/reactivity': resolvePath('reactivity'),
+		'@vue/runtime-core': resolvePath('runtime-core'),
+	};
+}
+exports.resolveVue = resolveVue;
+```
+
+#### 7.1.4 此时看起来虽然拿到了文件
 
 ![0](E:\vite-demo\img\06.png)
 
@@ -579,7 +600,51 @@ module.exports = moduleResolvePlugin;
 
 所以接下来我们需要通过注入一个插件：`injectProcessPlugin`来解决此问题。
 
-## 八、inject
+## 八、注册环境变量插件injectProcessPlugin
 
+### 8.1整体实现步骤
 
+#### 8.1.1 首先修改vite-cli/lib/cli.js
 
+```js
+// resolvedPlugins将集中放入插件
+const resolvedPlugins = [
+    injectProcessPlugin，
+    moduleRewritePlugin,
+    moduleResolvePlugin,
+    serveStaticPlugin,
+];
+resolvedPlugins.forEach(plugin => plugin(context));
+```
+
+#### 8.1.2 在lib文件夹下创建injectProcessPlugin.js
+
+```js
+/*
+ * @Descripttion: 解决process环境变量的插件
+ * @Author: lukasavage
+ * @Date: 2022-05-24 21:07:23
+ * @LastEditors: lukasavage
+ * @LastEditTime: 2022-05-24 21:18:19
+ * @FilePath: \vite-demo\packages\vite-cli\lib\injectProcessPlugin.js
+ */
+const { readBody } = require('./utils');
+function injectProcessPlugin({ root, app }) {
+	const devInjection = `
+    <script>
+        window.process = {env:{NODE_ENV:'development'}}
+    </script>
+    `;
+	app.use(async (ctx, next) => {
+		await next();
+		console.log(2);
+		if (ctx.response.is('html')) {
+			const html = await readBody(ctx.body);
+			ctx.body = html.replace(/<head>/, `$&${devInjection}`);
+		}
+	});
+}
+module.exports = injectProcessPlugin;
+```
+
+至此，我们手写的简化版的vite就实现了~![img](E:\vite-demo\img\08)
