@@ -3,7 +3,7 @@
  * @Author: lukasavage
  * @Date: 2022-05-22 10:09:23
  * @LastEditors: lukasavage
- * @LastEditTime: 2022-05-23 20:24:27
+ * @LastEditTime: 2022-05-24 17:23:30
  * @FilePath: \vite-demo\packages\vite-cli\lib\cli.js
  */
 const Koa = require('koa');
@@ -11,13 +11,13 @@ const Koa = require('koa');
 const dedent = require('dedent');
 const serveStaticPlugin = require('./serverPluginServeStatic');
 const moduleRewritePlugin = require('./serverPluginModuleRewrite');
+const moduleResolvePlugin = require('./serverPluginModuleResolve');
 
 function createServer() {
 	// koa实例
 	const app = new Koa();
 	// 当前命令所在的根目录: /vite-demo
 	const root = process.cwd();
-	console.log(root);
 	// 上下文
 	const context = {
 		app,
@@ -29,7 +29,11 @@ function createServer() {
 	});
 
 	// resolvedPlugins将集中放入插件
-	const resolvedPlugins = [moduleRewritePlugin, serveStaticPlugin];
+	const resolvedPlugins = [
+		moduleRewritePlugin,
+		moduleResolvePlugin,
+		serveStaticPlugin,
+	];
 	resolvedPlugins.forEach(plugin => plugin(context));
 
 	return app;

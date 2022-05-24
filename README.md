@@ -393,7 +393,123 @@
 
 ## 六、moduleRewritePlugin插件的编写
 
+### 6.1 整体实现步骤
+
+#### 6.1.1 首先修改vite-cli/lib/cli.js
+
+```js
+// 在此添加一个插件moduleRewritePlugin
+const resolvedPlugins = [moduleRewritePlugin, serveStaticPlugin];
+resolvedPlugins.forEach(plugin => plugin(context));
+```
+
+#### 6.1.2.接着在lib文件下创建serverPluginModuleRewrite.js
+
+```js
+/*
+ * @Descripttion: 模块重写插件，专门用于将esm导入的模块进行路径的改写的
+ * @Author: lukasavage
+ * @Date: 2022-05-23 18:52:41
+ * @LastEditors: lukasavage
+ * @LastEditTime: 2022-05-24 16:29:00
+ * @FilePath: \vite-demo\packages\vite-cli\lib\serverPluginModuleRewrite.js
+ */
+const { readBody } = require('./utils.js');
+const { parse } = require('es-module-lexer');
+const MagicString = require('magic-string');
+const hash = require('hash-sum');
+const path = require('path');
+
+function moduleRewritePlugin({ root, app }) {
+	app.use(async (ctx, next) => {
+		await next();
+		//如果有响应体，并且此响应体的内容类型是js  mime-type=application/javascript
+		if (ctx.body && ctx.response.is('js')) {
+            // 拿到相对路径为了解析成hash唯一值拼接成 ?v=0e64aa70
+		    const relativePath = path.relative(root, ctx.path);
+            // readbody会把整个文件toString化，变成一个字符串
+			const content = await readBody(ctx.body);
+			// 拿到内容后重写导入路径
+			const result = await rewriteImports(content, relativePath);
+			ctx.body = result;
+		}
+	});
+}
+
+module.exports = moduleRewritePlugin;
+```
+
+```js
+/**
+ * 读取响应体函数
+ * @param {*} content
+ * @returns
+ */
+async function rewriteImports(content, relativePath) {
+	const magicString = new MagicString(content);
+	const imports = await parse(content);
+    /*
+    	// imports数据↓↓↓
+    	[
+              [ { n: 'vue', s: 230, e: 233, ss: 203, se: 234, d: -1, a: -1 } ],
+              [],
+              false
+        ]
+    
+    */
+	if (imports && imports[0].length > 0) {
+		imports[0].forEach(({ n, s, e }) => {
+			//如果开头既不是/也不是.的话才会需要替换
+			if (/^[^\/\.]/.test(n)) {
+				magicString.overwrite(
+					s,
+					e,
+					`/node_modules/.vite/${n}.js?v=${hash(relativePath)}`
+				);
+			}
+		});
+	}
+	return magicString.toString();
+}
+```
 
 
 
+#### 6.1.3 readBody函数
 
+```js
+/*
+ * @Descripttion: 存放一些工具函数
+ * @Author: lukasavage
+ * @Date: 2022-05-23 19:09:35
+ * @LastEditors: lukasavage
+ * @LastEditTime: 2022-05-23 19:09:54
+ * @FilePath: \vite-demo\packages\vite-cli\lib\utils.js
+ */
+
+const { Readable } = require('stream');
+async function readBody(stream) {
+    // 判断stream是否为可读流
+	if (stream instanceof Readable) {
+		return new Promise(resolve => {
+			let buffers = [];
+			stream
+				.on('data', chunk => buffers.push(chunk))
+				.on('end', () => resolve(Buffer.concat(buffers).toString()));
+		});
+	} else {
+		return stream.toString();
+	}
+}
+exports.readBody = readBody;
+```
+
+### 6.2流程结果
+
+> 1. 在经过上诉步骤后，我们已经可以成功将<font color="#090">`import { createApp } from 'vue'`</font>已经变成<font color="#0f0">`import { createApp } from '/node_modules/.vite/deps/vue.js?v=0e64aa70'`</font>了。
+> 2. 此时，koa会继续发请求获取<font color="#090">`http://localhost:9999/node_modules/.vite/vue.js?v=4a399c20`</font>
+> 3. 所以，我们接下来的方案便是处理这个404，让其拿到所对应的内容。
+
+![](img/05.png)
+
+##  七、模块解析插件
