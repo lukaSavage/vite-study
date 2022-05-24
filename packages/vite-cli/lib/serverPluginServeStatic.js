@@ -3,11 +3,12 @@
  * @Author: lukasavage
  * @Date: 2022-05-22 12:00:06
  * @LastEditors: lukasavage
- * @LastEditTime: 2022-05-24 21:07:52
+ * @LastEditTime: 2022-05-24 21:44:21
  * @FilePath: \vite-demo\packages\vite-cli\lib\serverPluginServeStatic.js
  */
 const path = require('path');
 const static = require('koa-static');
+
 function serveStaticPlugin({ app, root }) {
 	app.use(static(root));
 }
