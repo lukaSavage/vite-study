@@ -3,7 +3,7 @@
  * @Author: lukasavage
  * @Date: 2022-05-24 17:19:28
  * @LastEditors: lukasavage
- * @LastEditTime: 2022-05-24 21:41:52
+ * @LastEditTime: 2022-05-25 21:40:22
  * @FilePath: \vite-demo\packages\vite-cli\lib\serverPluginModuleResolve.js
  */
 const fs = require('fs').promises;
@@ -22,7 +22,6 @@ function moduleResolvePlugin({ app, root }) {
 		if (!node_modulesRegexp.test(ctx.path)) {
 			return next();
 		}
-		console.log(1);
 		const moduleId = ctx.path.match(node_modulesRegexp)[1];
 		const modulePath = vueResolved[moduleId];
 		//如果vite预构建

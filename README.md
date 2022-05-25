@@ -647,4 +647,148 @@ function injectProcessPlugin({ root, app }) {
 module.exports = injectProcessPlugin;
 ```
 
-至此，我们手写的简化版的vite就实现了~![img](E:\vite-demo\img\08)
+至此，我们手写的简化版的vite就实现了~!!
+
+接着我们继续添加功能：创建一个App.vue组件，通过createApp方法注册，会发现控制台此时报错了↓
+
+vite-cli/main.js
+
+```js
+import { createApp } from 'vue';
+import App from './App.vue';
+createApp(App).mount('#app');
+```
+
+![](E:\vite-demo\img\08.png)
+
+下一步我们的任务便是识别并编译.vue文件
+
+## 九、vue文件编译插件vuePlugin.js
+
+### 9.1 整体实现流程
+
+查看控制台，当我们访问app.vue的时候，服务器会默认访问`http://localhost:3000/src/App.vue?t=1653481407688`这个请求，点开查看代码，如下
+
+![](E:\vite-demo\img\09.png)
+
+所以我们接下来的任务是：<font color="#08e">将当前代码给拼出来</font>
+
+#### 9.1.1 首先修改vite-cli/lib/cli.js
+
+```js
+// resolvedPlugins将集中放入插件
+const resolvedPlugins = [
+    injectProcessPlugin，
+    moduleRewritePlugin,
+    moduleResolvePlugin,
+    vuePlugin,
+    serveStaticPlugin,
+];
+resolvedPlugins.forEach(plugin => plugin(context));
+```
+
+#### 9.1.2 在lib文件下创建vuePlugin
+
+```js
+/*
+ * @Descripttion: 用于解析.vue文件的
+ * @Author: lukasavage
+ * @Date: 2022-05-25 20:14:29
+ * @LastEditors: lukasavage
+ * @LastEditTime: 2022-05-25 21:51:46
+ * @FilePath: \vite-demo\packages\vite-cli\lib\vuePlugin.js
+ */
+
+const fs = require('fs').promises;
+const path = require('path');
+const hash = require('hash-sum');
+const {
+	parse,
+	compileScript,
+	compileTemplate,
+	rewriteDefault,
+} = require('@vue/compiler-sfc');
+// 针对于第一次加载App.vue做一次缓存，防止在解析css文件的时候多次请求
+const descriptorCache = new Map();
+function vuePlugin({ root, app }) {
+	app.use(async (ctx, next) => {
+		// 如果不是vue结尾的文件，直接return
+		if (!ctx.path.endsWith('.vue')) {
+			return await next();
+		}
+		const filePath = path.join(root, ctx.path);
+		const descriptor = await getDescriptor(filePath, root);
+		if (ctx.query.type === 'style') {
+			const block = descriptor.styles[Number(ctx.query.index)];
+            console.log(block.content);
+			ctx.type = 'js';
+			ctx.body = `
+                let style = document.createElement('style');
+                style.innerHTML = ${JSON.stringify(block.content)};
+                document.head.appendChild(style);
+            `;
+		} else {
+			let targetCode = ``;
+			// css
+			if (descriptor.styles.length) {
+				let stylesCode = '';
+				descriptor.styles.forEach((style, index) => {
+					const query = `?vue&type=style&index=${index}&lang.css`;
+					const id = ctx.path;
+					const styleRequest = (id + query).replace(/\\/g, '/');
+					stylesCode += `\nimport ${JSON.stringify(styleRequest)}`;
+				});
+				targetCode += stylesCode;
+			}
+			//js
+			if (descriptor.script) {
+				let script = compileScript(descriptor, {
+					reactivityTransform: false,
+				});
+				scriptCode = rewriteDefault(script.content, '_sfc_main');
+				targetCode += scriptCode;
+			}
+			//template
+			if (descriptor.template) {
+				let templateContent = descriptor.template.content;
+				const { code: templateCode } = compileTemplate({
+					source: templateContent,
+				});
+				targetCode += templateCode;
+			}
+			targetCode += `\n_sfc_main.render=render`;
+			targetCode += `\nexport default _sfc_main`;
+			ctx.type = 'js';
+			ctx.body = targetCode;
+		}
+	});
+}
+async function getDescriptor(filePath) {
+	if (descriptorCache.has(filePath)) {
+		return descriptorCache.get(filePath);
+	}
+	const content = await fs.readFile(filePath, 'utf8');
+	const { descriptor } = parse(content, { filename: filePath });
+	// descriptor是一个对象，里面有filename、template等等信息
+	descriptorCache.set(filePath, descriptor);
+	return descriptor;
+}
+module.exports = vuePlugin;
+
+```
+
+### 9.2 针对于vue文件样式的处理
+
+#### 9.2.1 先看下控制台源码对样式的处理
+
+![](E:\vite-demo\img\10.png)
+
+query参数解读：
+
+1. type: 当前的类型
+2. index：代表第几个样式，有一个样式并且是第一个便是0，第二个便是1
+3. scoped以及lang都是style标签附加上的
+
+<font color="#f00">当读取到16行代码的时候，koa继续请求接口获取样式</font>,那么下一个App.vue的请求如下，我们接下来做的就是把上图第16行代码转化成下图这样的字符串
+
+![](E:\vite-demo\img\11.png)

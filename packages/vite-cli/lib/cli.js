@@ -3,7 +3,7 @@
  * @Author: lukasavage
  * @Date: 2022-05-22 10:09:23
  * @LastEditors: lukasavage
- * @LastEditTime: 2022-05-24 21:43:34
+ * @LastEditTime: 2022-05-25 20:17:43
  * @FilePath: \vite-demo\packages\vite-cli\lib\cli.js
  */
 const Koa = require('koa');
@@ -13,6 +13,7 @@ const serveStaticPlugin = require('./serverPluginServeStatic');
 const moduleRewritePlugin = require('./serverPluginModuleRewrite');
 const moduleResolvePlugin = require('./serverPluginModuleResolve');
 const injectProcessPlugin = require('./injectProcessPlugin');
+const vuePlugin = require('./vuePlugin');
 
 function createServer() {
 	// koa实例
@@ -34,6 +35,7 @@ function createServer() {
 		injectProcessPlugin,
 		moduleRewritePlugin,
 		moduleResolvePlugin,
+        vuePlugin,
 		serveStaticPlugin,
 	];
 	resolvedPlugins.forEach(plugin => plugin(context));

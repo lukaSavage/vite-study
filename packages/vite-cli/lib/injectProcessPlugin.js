@@ -3,7 +3,7 @@
  * @Author: lukasavage
  * @Date: 2022-05-24 21:07:23
  * @LastEditors: lukasavage
- * @LastEditTime: 2022-05-24 21:18:19
+ * @LastEditTime: 2022-05-25 21:40:19
  * @FilePath: \vite-demo\packages\vite-cli\lib\injectProcessPlugin.js
  */
 const { readBody } = require('./utils');
@@ -15,7 +15,6 @@ function injectProcessPlugin({ root, app }) {
     `;
 	app.use(async (ctx, next) => {
 		await next();
-		console.log(2);
 		if (ctx.response.is('html')) {
 			const html = await readBody(ctx.body);
 			ctx.body = html.replace(/<head>/, `$&${devInjection}`);
