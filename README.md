@@ -592,11 +592,11 @@ exports.resolveVue = resolveVue;
 
 #### 7.1.4 此时看起来虽然拿到了文件
 
-![0](E:\vite-demo\img\06.png)
+![](img/06.png)
 
 但控制台会有一个错误，shared.js中用到了一个process.env.NODE_ENV变量，而环境中并没有，因此报错
 
-![](E:\vite-demo\img\07.png)
+![](img/07.png)
 
 所以接下来我们需要通过注入一个插件：`injectProcessPlugin`来解决此问题。
 
@@ -659,7 +659,7 @@ import App from './App.vue';
 createApp(App).mount('#app');
 ```
 
-![](E:\vite-demo\img\08.png)
+![](img/08.png)
 
 下一步我们的任务便是识别并编译.vue文件
 
@@ -669,7 +669,7 @@ createApp(App).mount('#app');
 
 查看控制台，当我们访问app.vue的时候，服务器会默认访问`http://localhost:3000/src/App.vue?t=1653481407688`这个请求，点开查看代码，如下
 
-![](E:\vite-demo\img\09.png)
+![](img/09.png)
 
 所以我们接下来的任务是：<font color="#08e">将当前代码给拼出来</font>
 
@@ -781,7 +781,7 @@ module.exports = vuePlugin;
 
 #### 9.2.1 先看下控制台源码对样式的处理
 
-![](E:\vite-demo\img\10.png)
+![](img/10.png)
 
 query参数解读：
 
@@ -791,4 +791,4 @@ query参数解读：
 
 <font color="#f00">当读取到16行代码的时候，koa继续请求接口获取样式</font>,那么下一个App.vue的请求如下，我们接下来做的就是把上图第16行代码转化成下图这样的字符串
 
-![](E:\vite-demo\img\11.png)
+![](img/11.png)
